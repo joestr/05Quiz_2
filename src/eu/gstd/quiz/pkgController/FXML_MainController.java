@@ -237,11 +237,13 @@ public class FXML_MainController {
 
             // Creates some  entries to choose from
             List<String> choices = new ArrayList<>();
-            choices.add("192.168.128.152");
-            choices.add("212.152.179.117");
+            choices.add("192.168.234.223");   // TdoT edit
+            //choices.add("192.168.128.152"); // TdoT edit
+            //choices.add("212.152.179.117"); // TdoT edit
 
             // Create a new coice dialog
-            ChoiceDialog<String> dialog = new ChoiceDialog<>("192.168.128.152", choices);
+            //ChoiceDialog<String> dialog = new ChoiceDialog<>("192.168.128.152", choices); // TdoT edit
+            ChoiceDialog<String> dialog = new ChoiceDialog<>("192.168.234.223", choices);   // TdoT edit
             dialog.setTitle("Database IP");
             dialog.setHeaderText("Database IP");
             dialog.setContentText("Intern or extern:");
@@ -263,12 +265,11 @@ public class FXML_MainController {
 
                 try {
                     this.databaseConnectionHandler.connect();
-                    
+
                     this.databaseQuizWrapper = new DatabaseWrapper<>(Quiz.class, this.databaseConnectionHandler);
                     this.databaseQuestionWrapper = new DatabaseWrapper<>(Question.class, this.databaseConnectionHandler);
                     this.databaseAnswerWrapper = new DatabaseWrapper<>(Answer.class, this.databaseConnectionHandler);
 
-                    
                 } catch (Exception e) {
                     // Wrap the original exception
                     throw new CompletionException(e);
@@ -293,36 +294,36 @@ public class FXML_MainController {
                     this.menuItemFileEntryToJSON.disableProperty().setValue(Boolean.FALSE);
 
                     this.menuItemEntriesReload.disableProperty().setValue(Boolean.FALSE);
-                    
+
                     this.treeTableView.showRootProperty().setValue(Boolean.TRUE);
-                    
+
                     this.labelMessage.setText("Validated database connection!");
                 });
             });
         }
 
         if (event.getSource() == this.menuItemFileEntriesToJSON) {
-            
+
             // New file chooser
             FileChooser fileChooser = new FileChooser();
-            
+
             // limit to json files
             fileChooser.setTitle("Export entries to JSON (from database)");
             fileChooser.getExtensionFilters().addAll(
                 new ExtensionFilter("JSON File", "*.json")
             );
-            
+
             File selectedFile = fileChooser.showSaveDialog(contextMenu);
- 
+
             if (selectedFile == null) {
                 return;
             }
-            
+
             // Set the connection persitent, so a little bit faster
             this.databaseConnectionHandler.setPersistentConnection(true);
 
             List<JSONQuiz> quizzes = new ArrayList<>();
-            
+
             // run this whole mess async, (it takes really some time to generate this)
             CompletableFuture.supplyAsync(() -> {
                 try {
@@ -331,27 +332,27 @@ public class FXML_MainController {
                         JSONQuiz jsonQuiz = new JSONQuiz(q.getId(), q.getDescription());
 
                         for (Question qq : this.databaseQuestionWrapper.select("tid = '" + q.getId() + "'")) {
-                            
+
                             JSONQuestion jsonQuestion = new JSONQuestion(qq.getId(), qq.getText());
 
                             for (Answer a : this.databaseAnswerWrapper.select("tid = '" + q.getId() + "' AND fnr = " + qq.getId())) {
-                                
+
                                 JSONAnswer jsonAnswer = new JSONAnswer(a.getId(), a.getText(), false);
-                                
-                                if(a.getId().equals(qq.getCorrectAnswer())) {
-                                    
+
+                                if (a.getId().equals(qq.getCorrectAnswer())) {
+
                                     jsonAnswer.setCorrect(true);
                                 }
-                                
+
                                 jsonQuestion.getAnswers().add(jsonAnswer);
                             }
-                            
+
                             jsonQuiz.getQuestions().add(jsonQuestion);
                         }
-                        
+
                         quizzes.add(jsonQuiz);
                     }
-                    
+
                     // Write to the file with some Gson stuff before
                     Writer osWriter = new OutputStreamWriter(new FileOutputStream(selectedFile));
                     Gson gson = new GsonBuilder()
@@ -392,50 +393,50 @@ public class FXML_MainController {
 
             this.labelMessage.setText("Please be paitient while exporting to '" + selectedFile.getName() + "'!");
         }
-        
-        if(event.getSource() == this.menuItemFileEntryToJSON) {
-            
+
+        if (event.getSource() == this.menuItemFileEntryToJSON) {
+
             // If the user had not selected anything to export -> nothing *woosh*
-            if(this.treeTableView.getSelectionModel().getSelectedItem() == null) {
+            if (this.treeTableView.getSelectionModel().getSelectedItem() == null) {
                 return;
             }
-            
+
             // Another file chooser
             FileChooser fileChooser = new FileChooser();
-            
+
             // only json
             fileChooser.setTitle("Export entry (from local)");
             fileChooser.getExtensionFilters().addAll(
                 new ExtensionFilter("JSON File", "*.json")
             );
-            
+
             File selectedFile = fileChooser.showSaveDialog(contextMenu);
- 
+
             if (selectedFile == null) {
                 return;
             }
-            
+
             // store some usefull variables
             TreeItem<TripleStringed> targetNode = this.treeTableView.getSelectionModel().getSelectedItem();
             TripleStringed targetObject = this.treeTableView.getSelectionModel().getSelectedItem().getValue();
-            
+
             // if it is a quiz
-            if(targetObject instanceof Quiz) {
-                
+            if (targetObject instanceof Quiz) {
+
                 JSONQuiz jsonQuiz = new JSONQuiz(((Quiz) targetObject).getId(), ((Quiz) targetObject).getDescription());
-            
+
                 // async (you know)
                 CompletableFuture.supplyAsync(() -> {
                     try {
                         for (TreeItem<TripleStringed> qq : targetNode.getChildren()) {
-                            
+
                             JSONQuestion jsonQuestion = new JSONQuestion(((Question) qq.getValue()).getId(), ((Question) qq.getValue()).getText());
 
                             for (TreeItem<TripleStringed> a : qq.getChildren()) {
 
                                 JSONAnswer jsonAnswer = new JSONAnswer(((Answer) a.getValue()).getId(), ((Answer) a.getValue()).getText(), false);
 
-                                if(((Answer) a.getValue()).getId().equals(((Question) qq.getValue()).getCorrectAnswer())) {
+                                if (((Answer) a.getValue()).getId().equals(((Question) qq.getValue()).getCorrectAnswer())) {
 
                                     jsonAnswer.setCorrect(true);
                                 }
@@ -478,12 +479,12 @@ public class FXML_MainController {
                     });
                 });
             }
-            
+
             // question?
-            if(targetObject instanceof Question) {
-                
+            if (targetObject instanceof Question) {
+
                 JSONQuestion jsonQuestion = new JSONQuestion(((Question) targetObject).getId(), ((Question) targetObject).getText());
-            
+
                 // fancy async
                 CompletableFuture.supplyAsync(() -> {
                     try {
@@ -491,8 +492,8 @@ public class FXML_MainController {
 
                             JSONAnswer jsonAnswer = new JSONAnswer(((Answer) a.getValue()).getId(), ((Answer) a.getValue()).getText(), false);
 
-                            if(((Answer) a.getValue()).getId().equals(((Question) targetNode.getValue()).getCorrectAnswer())) {
-                                
+                            if (((Answer) a.getValue()).getId().equals(((Question) targetNode.getValue()).getCorrectAnswer())) {
+
                                 jsonAnswer.setCorrect(true);
                             }
 
@@ -531,15 +532,15 @@ public class FXML_MainController {
                     });
                 });
             }
-            
+
             // answer!
-            if(targetObject instanceof Answer) {
+            if (targetObject instanceof Answer) {
                 JSONAnswer jsonAnswer = new JSONAnswer(((Answer) targetObject).getId(), ((Answer) targetObject).getText(), false);
-            
+
                 // tiny async (maybe not usefull here)
                 CompletableFuture.supplyAsync(() -> {
                     try {
-                        if(((Answer) targetNode.getValue()).getId().equals(((Question) targetNode.getParent().getValue()).getCorrectAnswer())) {
+                        if (((Answer) targetNode.getValue()).getId().equals(((Question) targetNode.getParent().getValue()).getCorrectAnswer())) {
 
                             jsonAnswer.setCorrect(true);
                         }
@@ -588,12 +589,12 @@ public class FXML_MainController {
             alert.setTitle("About");
             alert.setHeaderText("About");
             alert.setContentText(
-                    "QuizManager v0.1.0\n"
-                    + "Copyright (c) 2018 Joel Strasser (joestr)\n"
-                    + "\n"
-                    + "Open source libraries used:\n"
-                    + "DatabaseX v0.1.1\n"
-                    + "Copyright (c) 2018 Joel Strasser (joestr)"
+                "QuizManager v0.1.0\n"
+                + "Copyright (c) 2018 Joel Strasser (joestr)\n"
+                + "\n"
+                + "Open source libraries used:\n"
+                + "DatabaseX v0.1.1\n"
+                + "Copyright (c) 2018 Joel Strasser (joestr)"
             );
 
             alert.showAndWait();
@@ -605,7 +606,7 @@ public class FXML_MainController {
 
         if (event.getSource() == this.menuItemEntriesReload) {
             this.labelMessage.setText("Please be paitent while the tree builds!");
-            
+
             // clear the root element, so we don't add items till a stackoverflow
             this.treeTableView.getRoot().getChildren().clear();
 
@@ -627,12 +628,12 @@ public class FXML_MainController {
 
                             for (Answer a : this.databaseAnswerWrapper.select("tid = '" + q.getId() + "' AND fnr = " + qq.getId())) {
                                 TreeItem<TripleStringed> ta
-                                = new TreeItem<>(
+                                    = new TreeItem<>(
                                         a,
                                         a.getId().equals(qq.getCorrectAnswer())
                                         ? this.imageProvider.getPapirus_icon_theme_emblem_default()
                                         : this.imageProvider.getPapirus_icon_theme_emblem_unreadable()
-                                );
+                                    );
                                 tqq.getChildren().add(ta);
                             }
                         }
@@ -695,13 +696,12 @@ public class FXML_MainController {
         this.treeTableView.setEditable(true);
 
         //NetBeans - collapsed this (no comments, trust me!)
-        
         //<editor-fold defaultstate="collapsed" desc="addQuizFromRoot#setOnAction">
         this.addQuizFromRoot.setOnAction((event) -> {
             // na, comments here
-            
+
             this.labelMessage.setText("Please be paitient whilst adding quiz!");
-            
+
             // new input box
             TextInputDialog dialog = new TextInputDialog("Quiz ID");
             dialog.setTitle("Quiz ID");
@@ -739,24 +739,24 @@ public class FXML_MainController {
                     Platform.runLater(() -> {
                         // add as child to the root elemnt
                         rootElement.getChildren().add(new TreeItem<>(
-                                mayResult,
-                                imageProvider.getPapirus_icon_theme_emblem_generic()
+                            mayResult,
+                            imageProvider.getPapirus_icon_theme_emblem_generic()
                         )
                         );
                         // just for ... i don't know
                         treeTableView.refresh();
-                        
+
                         labelMessage.setText("Added quiz '" + name + "'!");
                     });
                 });
             });
         });
         //</editor-fold>
-        
+
         //<editor-fold defaultstate="collapsed" desc="addQuizFromQuiz#setOnAction">
         this.addQuizFromQuiz.setOnAction((event) -> {
             this.labelMessage.setText("Please be paitient whilst adding quiz!");
-            
+
             // new input box
             TextInputDialog dialog = new TextInputDialog("Quiz ID");
             dialog.setTitle("Quiz ID");
@@ -794,13 +794,13 @@ public class FXML_MainController {
                     Platform.runLater(() -> {
                         // add as child to the root elemnt
                         rootElement.getChildren().add(new TreeItem<>(
-                                mayResult,
-                                imageProvider.getPapirus_icon_theme_emblem_generic()
+                            mayResult,
+                            imageProvider.getPapirus_icon_theme_emblem_generic()
                         )
                         );
                         // just for ... i don't know
                         treeTableView.refresh();
-                        
+
                         labelMessage.setText("Added quiz '" + name + "'!");
                     });
                 }
@@ -814,7 +814,7 @@ public class FXML_MainController {
         //<editor-fold defaultstate="collapsed" desc="deleteQuizFromQuiz#setOnAction">
         this.deleteQuizFromQuiz.setOnAction((event) -> {
             this.labelMessage.setText("Please be paitient whilst deleting quiz!");
-            
+
             // some variables to work with
             TreeItem<TripleStringed> targetNode = treeTableView.getSelectionModel().getSelectedItem();
             Quiz targetObject = (Quiz) treeTableView.getSelectionModel().getSelectedItem().getValue();
@@ -850,10 +850,10 @@ public class FXML_MainController {
                     );
 
                     // loop through the questions
-                    for(TreeItem<TripleStringed> questionNode : targetNode.getChildren()) {
+                    for (TreeItem<TripleStringed> questionNode : targetNode.getChildren()) {
 
                         // loop through the answers
-                        for(TreeItem<TripleStringed> answerNode : questionNode.getChildren()) {
+                        for (TreeItem<TripleStringed> answerNode : questionNode.getChildren()) {
                             Answer answerToDelete = (Answer) answerNode.getValue();
                             databaseAnswerWrapper.delete(answerToDelete);
                         }
@@ -881,13 +881,13 @@ public class FXML_MainController {
                     databaseConnectionHandler.getConnection().createStatement().execute(
                         "ALTER TABLE testantwort ENABLE CONSTRAINT fktestantwort_teilnahme"
                     );
-                } catch(Exception e) {
+                } catch (Exception e) {
                     throw new CompletionException(e);
                 }
                 return true;
             }
             ).whenComplete((mayResult, exception) -> {
-                if(exception != null) {
+                if (exception != null) {
                     Platform.runLater(() -> {
                         labelMessage.setText("");
                         Alert alert = AlertManager.exception(
@@ -904,18 +904,18 @@ public class FXML_MainController {
                     // remove quiz from the root
                     treeTableView.getRoot().getChildren().remove(targetNode);
                     treeTableView.refresh();
-                    
+
                     labelMessage.setText("Deleted quiz '" + targetObject.getId() + "'!");
                 });
             }
-        );
+            );
         });
         //</editor-fold>
 
         //<editor-fold defaultstate="collapsed" desc="addQuestionFromQuiz#setOnAction">
         this.addQuestionFromQuiz.setOnAction((event) -> {
             this.labelMessage.setText("Please be paitient whilst adding question!");
-            
+
             TreeItem<TripleStringed> targetNode = treeTableView.getSelectionModel().getSelectedItem();
             Quiz targetObject = (Quiz) treeTableView.getSelectionModel().getSelectedItem().getValue();
 
@@ -991,11 +991,11 @@ public class FXML_MainController {
 
                         targetNode.getChildren().addAll(addedQuestion);
                         treeTableView.refresh();
-                        
+
                         labelMessage.setText(
-                            "Added question '" + mayResult.get(0).getString1() +
-                            "' to quiz '" + mayResult.get(1).getString1() +
-                            "'!"
+                            "Added question '" + mayResult.get(0).getString1()
+                            + "' to quiz '" + mayResult.get(1).getString1()
+                            + "'!"
                         );
                     });
                 });
@@ -1006,10 +1006,10 @@ public class FXML_MainController {
         //<editor-fold defaultstate="collapsed" desc="deleteQuestionFromQuestion#setOnAction">
         this.deleteQuestionFromQuestion.setOnAction((event) -> {
             this.labelMessage.setText("Please be paitient whilst deleting question!");
-            
+
             TreeItem<TripleStringed> targetNode = treeTableView.getSelectionModel().getSelectedItem();
             Question targetObject = (Question) treeTableView.getSelectionModel().getSelectedItem().getValue();
-            
+
             CompletableFuture.supplyAsync(() -> {
                 try {
                     databaseConnectionHandler.setPersistentConnection(true);
@@ -1029,7 +1029,7 @@ public class FXML_MainController {
                         "DELETE FROM testantwort WHERE tid = '" + targetObject.getQuizId() + "' AND fnr = " + targetObject.getId()
                     );
 
-                    for(TreeItem<TripleStringed> answerNode : targetNode.getChildren()) {
+                    for (TreeItem<TripleStringed> answerNode : targetNode.getChildren()) {
 
                         Answer answerToDelete = (Answer) answerNode.getValue();
                         databaseAnswerWrapper.delete(answerToDelete);
@@ -1046,12 +1046,12 @@ public class FXML_MainController {
                     databaseConnectionHandler.getConnection().createStatement().execute(
                         "ALTER TABLE testantwort ENABLE CONSTRAINT fktestantwort_antwort"
                     );
-                } catch(Exception e) {
+                } catch (Exception e) {
                     throw new CompletionException(e);
                 }
                 return true;
             }).whenComplete((mayResult, exception) -> {
-                if(exception != null) {
+                if (exception != null) {
                     Platform.runLater(() -> {
                         labelMessage.setText("");
                         Alert alert = AlertManager.exception(
@@ -1067,24 +1067,24 @@ public class FXML_MainController {
                 Platform.runLater(() -> {
                     targetNode.getParent().getChildren().removeAll(targetNode);
                     treeTableView.refresh();
-                    
+
                     labelMessage.setText(
-                        "Deleted question '" + targetObject.getId() +
-                        "' from quiz '" + targetObject.getId() +
-                        "'!"
+                        "Deleted question '" + targetObject.getId()
+                        + "' from quiz '" + targetObject.getId()
+                        + "'!"
                     );
                 });
             });
         });
         //</editor-fold>
-        
+
         //<editor-fold defaultstate="collapsed" desc="addQuestionFromQuestion#setOnAction">
         this.addQuestionFromQuestion.setOnAction((event) -> {
             this.labelMessage.setText("Please be paitient whilst adding question!");
-            
+
             TreeItem<TripleStringed> targetNode = treeTableView.getSelectionModel().getSelectedItem();
             Question targetObject = (Question) treeTableView.getSelectionModel().getSelectedItem().getValue();
-            
+
             TextInputDialog dialog = new TextInputDialog("Question text");
             dialog.setTitle("Question text");
             dialog.setHeaderText("Question text");
@@ -1103,7 +1103,6 @@ public class FXML_MainController {
                         ResultSet rs = databaseConnectionHandler.getConnection().createStatement().executeQuery("SELECT NVL(MAX(fnr), 0) + 1 AS FROM antwort WHERE tid = '" + targetObject.getQuizId() + "'");
                         rs.next();
                         nextId = rs.getInt(1);
-
 
                         Question questionToAdd = new Question(targetObject.getQuizId(), nextId, name, 1);
                         Answer answerToAdd = new Answer(targetObject.getQuizId(), questionToAdd.getId(), 1, "Correct answer for " + name);
@@ -1129,12 +1128,12 @@ public class FXML_MainController {
 
                         databaseConnectionHandler.disconnect();
                         databaseConnectionHandler.setPersistentConnection(false);
-                    } catch(Exception e) {
+                    } catch (Exception e) {
                         throw new CompletionException(e);
                     }
                     return r;
                 }).whenComplete((mayResult, exception) -> {
-                    if(exception != null) {
+                    if (exception != null) {
                         Platform.runLater(() -> {
                             labelMessage.setText("");
                             Alert alert = AlertManager.exception(
@@ -1147,7 +1146,7 @@ public class FXML_MainController {
                         return;
                     }
 
-                    if(mayResult.isEmpty()) {
+                    if (mayResult.isEmpty()) {
                         return;
                     }
 
@@ -1158,25 +1157,25 @@ public class FXML_MainController {
                         targetNode.getParent().getChildren().addAll(addedQuestion);
 
                         treeTableView.refresh();
-                        
+
                         labelMessage.setText(
-                            "Added question '" + mayResult.get(0).getString1() +
-                            "' to quiz '" + mayResult.get(1).getString1() +
-                            "'!"
+                            "Added question '" + mayResult.get(0).getString1()
+                            + "' to quiz '" + mayResult.get(1).getString1()
+                            + "'!"
                         );
                     });
                 });
             });
         });
         //</editor-fold>
-        
+
         //<editor-fold defaultstate="collapsed" desc="addAnswerFromQuestion#setOnAction">
         this.addAnswerFromQuestion.setOnAction((event) -> {
             this.labelMessage.setText("Please be paitient whilst adding answer!");
-            
+
             TreeItem<TripleStringed> targetNode = treeTableView.getSelectionModel().getSelectedItem();
             Question targetObject = (Question) treeTableView.getSelectionModel().getSelectedItem().getValue();
-            
+
             TextInputDialog dialog = new TextInputDialog("Answer text");
             dialog.setTitle("Answer text");
             dialog.setHeaderText("Answer text");
@@ -1203,12 +1202,12 @@ public class FXML_MainController {
                             name
                         );
                         databaseAnswerWrapper.insert(answerToAdd);
-                    } catch(Exception e) {
+                    } catch (Exception e) {
                         throw new CompletionException(e);
                     }
                     return answerToAdd;
                 }).whenComplete((mayResult, exception) -> {
-                    if(exception != null) {
+                    if (exception != null) {
                         Platform.runLater(() -> {
                             labelMessage.setText("");
                             Alert alert = AlertManager.exception(
@@ -1221,33 +1220,33 @@ public class FXML_MainController {
                         return;
                     }
 
-                    if(mayResult == null) {
+                    if (mayResult == null) {
                         return;
                     }
 
                     Platform.runLater(() -> {
                         targetNode.getChildren().add(new TreeItem<>(mayResult, imageProvider.getPapirus_icon_theme_emblem_unreadable()));
                         treeTableView.refresh();
-                        
+
                         labelMessage.setText(
-                            "Added answer '" + mayResult.getId() +
-                            "' to question '" + mayResult.getQuestionId() +
-                            "' from quiz '" + mayResult.getQuizId() +
-                            "'!"
+                            "Added answer '" + mayResult.getId()
+                            + "' to question '" + mayResult.getQuestionId()
+                            + "' from quiz '" + mayResult.getQuizId()
+                            + "'!"
                         );
                     });
                 });
             });
         });
         //</editor-fold>
-        
+
         //<editor-fold defaultstate="collapsed" desc="addAnswerFromAnswer#setOnAction">
         this.addAnswerFromAnswer.setOnAction((event) -> {
             this.labelMessage.setText("Please be paitient whilst adding answer!");
-            
+
             TreeItem<TripleStringed> targetNode = treeTableView.getSelectionModel().getSelectedItem();
             Answer targetObject = (Answer) treeTableView.getSelectionModel().getSelectedItem().getValue();
-            
+
             TextInputDialog dialog = new TextInputDialog("Answer text");
             dialog.setTitle("Answer text");
             dialog.setHeaderText("Answer text");
@@ -1274,12 +1273,12 @@ public class FXML_MainController {
                             name
                         );
                         databaseAnswerWrapper.insert(answerToAdd);
-                    } catch(Exception e) {
+                    } catch (Exception e) {
                         throw new CompletionException(e);
                     }
                     return answerToAdd;
                 }).whenComplete((mayResult, exception) -> {
-                    if(exception != null) {
+                    if (exception != null) {
                         Platform.runLater(() -> {
                             labelMessage.setText("");
                             Alert alert = AlertManager.exception(
@@ -1292,30 +1291,30 @@ public class FXML_MainController {
                         return;
                     }
 
-                    if(mayResult == null) {
+                    if (mayResult == null) {
                         return;
                     }
 
                     Platform.runLater(() -> {
                         targetNode.getParent().getChildren().add(new TreeItem<>(mayResult, imageProvider.getPapirus_icon_theme_emblem_unreadable()));
                         treeTableView.refresh();
-                        
+
                         labelMessage.setText(
-                            "Added answer '" + targetObject.getId() +
-                            "' to question '" + targetObject.getQuestionId() + 
-                            "' from quiz '" + targetObject.getQuizId() +
-                            "'!"
+                            "Added answer '" + targetObject.getId()
+                            + "' to question '" + targetObject.getQuestionId()
+                            + "' from quiz '" + targetObject.getQuizId()
+                            + "'!"
                         );
                     });
                 });
             });
         });
         //</editor-fold>
-        
+
         //<editor-fold defaultstate="collapsed" desc="deleteAnswerFromAnswer#setOnAction">
         this.deleteAnswerFromAnswer.setOnAction((event) -> {
             this.labelMessage.setText("Please be paitient whilst deleting answer!");
-            
+
             TreeItem<TripleStringed> targetNode = treeTableView.getSelectionModel().getSelectedItem();
             Answer targetObject = (Answer) treeTableView.getSelectionModel().getSelectedItem().getValue();
 
@@ -1339,18 +1338,18 @@ public class FXML_MainController {
                         "DELETE FROM testantwort WHERE tid = '" + targetObject.getQuizId() + "' AND fnr = " + targetObject.getQuestionId() + " AND anr = " + targetObject.getId()
                     );
 
-                    if(((Question) targetNode.getParent().getValue()).getCorrectAnswer().equals(targetObject.getId())) {
+                    if (((Question) targetNode.getParent().getValue()).getCorrectAnswer().equals(targetObject.getId())) {
 
                         databaseConnectionHandler.getConnection().createStatement().executeUpdate(
                             "DELETE FROM testantwort WHERE tid = '" + targetObject.getQuizId() + "' AND fnr = " + targetObject.getId()
                         );
-                        
+
                         databaseConnectionHandler.getConnection().createStatement().executeUpdate(
                             "DELETE FROM antwort WHERE tid = '" + targetObject.getQuizId() + "' AND fnr = " + targetObject.getId()
                         );
 
                         databaseQuestionWrapper.delete((Question) targetNode.getParent().getValue());
-                        
+
                         databaseAnswerWrapper.delete(targetObject);
 
                         result = 2;
@@ -1369,12 +1368,12 @@ public class FXML_MainController {
                     databaseConnectionHandler.getConnection().createStatement().execute(
                         "ALTER TABLE testantwort ENABLE CONSTRAINT fktestantwort_antwort"
                     );
-                } catch(Exception e) {
+                } catch (Exception e) {
                     throw new CompletionException(e);
                 }
                 return result;
             }).whenComplete((mayResult, exception) -> {
-                if(exception != null) {
+                if (exception != null) {
                     Platform.runLater(() -> {
                         labelMessage.setText("");
                         Alert alert = AlertManager.exception(
@@ -1389,32 +1388,32 @@ public class FXML_MainController {
 
                 Platform.runLater(() -> {
                     // normal
-                    if(mayResult == 1) {
+                    if (mayResult == 1) {
                         targetNode.getParent().getChildren().remove(targetNode);
                     }
 
                     // deleted question too
-                    if(mayResult == 2) {
+                    if (mayResult == 2) {
                         targetNode.getParent().getParent().getChildren().remove(targetNode.getParent());
                     }
 
                     treeTableView.refresh();
-                    
+
                     labelMessage.setText(
-                        "Deleted answer '" + targetObject.getId() +
-                        "' from question " + targetObject.getQuestionId() + 
-                        "' of quiz '" + targetObject.getQuizId() +
-                        "'!"
+                        "Deleted answer '" + targetObject.getId()
+                        + "' from question " + targetObject.getQuestionId()
+                        + "' of quiz '" + targetObject.getQuizId()
+                        + "'!"
                     );
                 });
             });
         });
         //</editor-fold>
-        
+
         //<editor-fold defaultstate="collapsed" desc="marksAsCorrectAnswerFromAnswer#setOnAction">
         this.markAsCorrectAnswerFromAnswer.setOnAction((event) -> {
             this.labelMessage.setText("Please be paitient whilst marking answer as correct!");
-            
+
             TreeItem<TripleStringed> targetNode = treeTableView.getSelectionModel().getSelectedItem();
             Answer targetObject = (Answer) treeTableView.getSelectionModel().getSelectedItem().getValue();
 
@@ -1429,14 +1428,14 @@ public class FXML_MainController {
                         parentQuestion.getCorrectAnswer()
                     );
                     parentQuestion.setCorrectAnswer(targetObject.getId());
-                    
+
                     databaseQuestionWrapper.update(oldQuestion, parentQuestion);
-                } catch(Exception e) {
+                } catch (Exception e) {
                     throw new CompletionException(e);
                 }
                 return result;
             }).whenComplete((mayResult, exception) -> {
-                if(exception != null) {
+                if (exception != null) {
                     Platform.runLater(() -> {
                         labelMessage.setText("");
                         Alert alert = AlertManager.exception(
@@ -1453,43 +1452,45 @@ public class FXML_MainController {
                     targetNode.getParent().getChildren().forEach((item) -> {
                         item.setGraphic(imageProvider.getPapirus_icon_theme_emblem_unreadable());
                     });
-                
+
                     targetNode.setGraphic(imageProvider.getPapirus_icon_theme_emblem_default());
 
                     treeTableView.refresh();
-                    
+
                     labelMessage.setText(
-                        "Marked answer '" + targetObject.getId() +
-                        "' of question '" + targetObject.getQuestionId() + 
-                        "' of quiz '" + targetObject.getQuizId() +
-                        "' as correct!"
+                        "Marked answer '" + targetObject.getId()
+                        + "' of question '" + targetObject.getQuestionId()
+                        + "' of quiz '" + targetObject.getQuizId()
+                        + "' as correct!"
                     );
                 });
             });
         });
         //</editor-fold>
-        
+
         // this is a dummy entry, so wenn can disable it
         this.placeholder.setDisable(true);
-        
+
         // event handler to build up the context menu, which should change depending the entry selected
         this.treeTableView.addEventHandler(MouseEvent.MOUSE_CLICKED, (event) -> {
-            
-            if(event.getButton() != MouseButton.SECONDARY) {
+
+            if (event.getButton() != MouseButton.SECONDARY) {
                 return;
             }
-            
+
             // nothing selected, nothing to do
-            if(treeTableView.getSelectionModel().getSelectedItem() == null) { return; }
-            
+            if (treeTableView.getSelectionModel().getSelectedItem() == null) {
+                return;
+            }
+
             // set dummy here
             contextMenu.getItems().setAll(placeholder);
-            
+
             // if its the selected element is the root element
             if (treeTableView.getSelectionModel().getSelectedItem().equals(rootElement)) {
                 contextMenu.getItems().setAll(addQuizFromRoot);
             }
-            
+
             // if it is a quiz then show entries for 'fromQuiz'
             if (treeTableView.getSelectionModel().getSelectedItem().getValue() instanceof Quiz) {
                 contextMenu.getItems().setAll(addQuizFromQuiz, deleteQuizFromQuiz, addQuestionFromQuiz);
@@ -1505,7 +1506,7 @@ public class FXML_MainController {
                 contextMenu.getItems().setAll(addAnswerFromAnswer, deleteAnswerFromAnswer, markAsCorrectAnswerFromAnswer);
             }
         });
-        
+
         // set the context menu
         this.treeTableView.setContextMenu(contextMenu);
     }
@@ -1515,22 +1516,23 @@ public class FXML_MainController {
     private DatabaseWrapper<Quiz> databaseQuizWrapper;
     private DatabaseWrapper<Question> databaseQuestionWrapper;
     private DatabaseWrapper<Answer> databaseAnswerWrapper;
-    
+
     // the root element
     private TreeItem<TripleStringed> rootElement;
-    
+
     // the fancy icons
     private ImageProvider imageProvider = new ImageProvider();
-    
+
     // connection string for database
-    private String connectionString = "jdbc:oracle:thin:d4b23/d4b@%database_ip%:1521:ora11g";
-    
+    //private String connectionString = "jdbc:oracle:thin:d4b23/d4b@%database_ip%:1521:ora11g"; // TdoT edit
+    private String connectionString = "jdbc:oracle:thin:quiz/quiz@%database_ip%:1521:ora11g"; // TdoT edit
+
     // context menu
     private ContextMenu contextMenu = new ContextMenu();
 
     // ahhh, the menu items
     private final MenuItem addQuizFromRoot = new MenuItem("Add quiz", imageProvider.getPapirus_icon_theme_emblem_generic());
-    
+
     private final MenuItem addQuizFromQuiz = new MenuItem("Add quiz", imageProvider.getPapirus_icon_theme_emblem_generic());
     private final MenuItem deleteQuizFromQuiz = new MenuItem("Delete quiz");
     private final MenuItem addQuestionFromQuiz = new MenuItem("Add question", imageProvider.getPapirus_icon_theme_emblem_question());
@@ -1542,7 +1544,7 @@ public class FXML_MainController {
     private final MenuItem addAnswerFromAnswer = new MenuItem("Add answer", imageProvider.getPapirus_icon_theme_emblem_unreadable());
     private final MenuItem deleteAnswerFromAnswer = new MenuItem("Delete answer");
     private final MenuItem markAsCorrectAnswerFromAnswer = new MenuItem("Mark as correct", imageProvider.getPapirus_icon_theme_emblem_default());
-    
+
     // dummy menu item
     private final MenuItem placeholder = new MenuItem("Placeholder");
 }

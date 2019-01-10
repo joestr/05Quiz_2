@@ -18,16 +18,16 @@ import javafx.stage.Stage;
  * @author schueler
  */
 public class Main extends Application {
-    
+
     @Override
     public void start(Stage stage) throws Exception {
         Parent root = FXMLLoader.load(getClass().getResource("resources/FXML_Main.fxml"));
-        
+
         Scene scene = new Scene(root);
-        
-        stage.getIcons().add(new Image(getClass().getResourceAsStream("resources/joestr_blue_transparent.png")));
+
+        stage.getIcons().add(new Image(getClass().getResourceAsStream("resources/quizmanager.png")));
         stage.setTitle("QuizManager");
-        
+
         stage.setScene(scene);
         stage.show();
     }
@@ -38,5 +38,5 @@ public class Main extends Application {
     public static void main(String[] args) {
         launch(args);
     }
-    
+
 }
