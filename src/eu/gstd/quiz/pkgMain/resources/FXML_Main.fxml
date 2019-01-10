@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.TreeTableColumn?>
+<?import javafx.scene.control.TreeTableView?>
+<?import javafx.scene.layout.AnchorPane?>
+
+<AnchorPane id="AnchorPane" prefHeight="720.0" prefWidth="1280.0" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="eu.gstd.quiz.pkgController.FXML_MainController">
+   <children>
+      <Label fx:id="labelMessage" layoutX="10.0" layoutY="694.0" prefHeight="16.0" prefWidth="1260.0" style="-fx-background-color: yellow;" />
+      <MenuBar fx:id="menuBarQuiz" prefHeight="29.0" prefWidth="1270.0">
+        <menus>
+          <Menu fx:id="menuFile" mnemonicParsing="false" onAction="#onSelectMenuFile" text="File">
+            <items>
+              <MenuItem fx:id="menuItemSetDatabase" mnemonicParsing="false" onAction="#onSelectMenuFile" text="Set database ..." />
+                  <MenuItem fx:id="menuItemFileEntriesToJSON" mnemonicParsing="false" onAction="#onSelectMenuFile" text="Entries to JSON (from database)" />
+                  <MenuItem fx:id="menuItemFileEntryToJSON" mnemonicParsing="false" onAction="#onSelectMenuFile" text="Entry to JSON (from local)" />
+            </items>
+          </Menu>
+          <Menu fx:id="menuEntries" mnemonicParsing="false" onAction="#onSelectMenuEntries" text="Entries">
+            <items>
+              <MenuItem fx:id="menuItemEntriesReload" mnemonicParsing="false" onAction="#onSelectMenuEntries" text="Reload" />
+            </items>
+          </Menu>
+          <Menu fx:id="menuHelp" mnemonicParsing="false" onAction="#onSelectMenuHelp" text="Help">
+            <items>
+              <MenuItem fx:id="menuItemHelpAbout" mnemonicParsing="false" onAction="#onSelectMenuHelp" text="About" />
+            </items>
+          </Menu>
+        </menus>
+      </MenuBar>
+      <TreeTableView fx:id="treeTableView" layoutX="8.0" layoutY="38.0" prefHeight="646.0" prefWidth="1260.0">
+        <columns>
+          <TreeTableColumn fx:id="treeTableColumnId" onEditCommit="#onEditCommitTreeTableColumnId" prefWidth="141.0" text="Id" />
+          <TreeTableColumn fx:id="treeTableColumnText" onEditCommit="#onEditCommitTreeTableColumnText" prefWidth="959.0" text="Text" />
+        </columns>
+      </TreeTableView>
+   </children>
+   <padding>
+      <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+   </padding>
+</AnchorPane>
