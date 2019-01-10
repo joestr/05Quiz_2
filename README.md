@@ -4,3 +4,4 @@
 Der QuizManager wird am Tag der offenen Tür der HTL Villach präsentiert.
 
 Es wurde mit einer Vorgängerversion des DBWrapper gearbeitet.
+Das Kompilat davon steht als DatabaseX.ja_ zur Verfügung.
